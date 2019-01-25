@@ -1,11 +1,29 @@
-<!DOCTYPE html>
+<!doctype html>
 <html>
   <head>
-    <meta charset="UTF-8">
+    <meta charset="utf-8">
+    <link rel="stylesheet" href="style.css">
+    <title>GPIN</title>
   </head>
   <body>
-    <script src="out/main.js" type="text/javascript"></script>
-    <canvas id="screen" style="border: 3px solid black;" width="512" height="512"></canvas>
+    <img id="gpin32" src="./image/gpin.png" style="display:none">
+    <img id="gpin32_p" src="./image/gpin-p.png" style="display:none">
+    <img id="gpin64" src="./image/gpin64.png" style="display:none">
+    <img id="gpin64_p" src="./image/gpin64-p.png" style="display:none">
+    <img id="gpin_explode" src="./image/gpin-explode.png" style="display:none">
+    <img id="kinoko" src="./image/kinoko.png" style="display:none">
+    <img id="kusa" src="./image/bokusou16.png" style="display:none">
+    <img id="mukku32" src="./image/mukku32.png" style="display:none">
+    <img id="mukku64" src="./image/mukku64.png" style="display:none">
+    <img id="mukku_explode" src="./image/mukku-explode.png" style="display:none">
+    <img id="tama" src="./image/tama.png" style="display:none">
+    <img id="unk" src="./image/unk.png" style="display:none">
+
+    <audio id="explode"><source type="audio/wav" src="./sound/Explosion.wav"></audio>
+    <audio id="hit"><source type="audio/wav" src="./sound/Hit.wav"></audio>
+    <audio id="hit_unk"><source type="audio/wav" src="./sound/Hit_unk.wav"></audio>
+    <audio id="hit_kusa"><source type="audio/wav" src="./sound/kusa.wav"></audio>
+
+    <canvas id="screen" width="840" height="480"></canvas>
   </body>
 </html>
-
