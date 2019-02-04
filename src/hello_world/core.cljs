@@ -57,10 +57,6 @@
 
   (.drawImage $ctx (obj :id) (obj :x) (obj :y)))
 
-;;   getCenter() {
-;;     return [this.x + this.width / 2,
-;;             this.y + this.height / 2];
-;;   }
 (defn get-center [entity]
   (list (/ (+ (entity :x) (entity :width)) 2)
         (/ (+ (entity :y) (entity :height)) 2)))
@@ -73,18 +69,6 @@
     (> (obj :y) ty) (update obj :y dec)
     (< (obj :y) ty) (update obj :y inc)
     :else obj))
-
-;;   collide(other) {
-;;     if (this.state != 0 || other.state != 0)
-;;       return;
-
-;;     var a = this.hitBox(), b = other.hitBox();
-
-;;     return (this.x + a.right > other.x + b.left &&
-;;             this.x + a.left < other.x + b.right &&
-;;             this.y + a.bottom > other.y + b.top &&
-;;             this.y + a.top < other.y + b.bottom);
-;;   }
 
 (defmulti hit-box :class)
 (defmethod hit-box :default [entity]
@@ -184,62 +168,13 @@
 ;;     }
 ;;   }
 
-;;   hitBox() {
-;;     if (this.big) {
-;;       return { left: 16, right: 48, top: 12, bottom: 52 };
-;;     } else {
-;;       return { left: 8, right: 24, top: 6, bottom: 26 };
-;;     }
-;;   }
-
 (defmulti take-kinoko :class)
-;;   takeKinoko() {
-;;     if (this.big == 0) {
-;;       this.id = asset("mukku64");
-;;       this.width = this.height = 64;
-;;       this.big = 1;
-;;     }
-;;     this.hp += 50;
-;;     this.goal_x = this.goal_y = 0;
-;;   }
 (defmethod take-kinoko :mukku [this]
   (-> (if (= 0 (this :big))
         (merge this { :id (asset "mukku64"), :width 64, :height 64, :big 1 })
         this)
       (update :hp + 50)
       (merge { :goal_x 0 :goal_y 0})))
-
-;;   update(game_state) {
-;;     if (this.state == 0) {
-;;       if (this.move_type == 100)
-;;         moveToKinokoKusa(this, game_state);
-;;       else if (this.move_type == 2)
-;;         moveType2(this, game_state);
-;;       else if (this.move_type == 3)
-;;         moveToPlayer(this, game_state);
-;;       else
-;;         moveChara(this, game_state);
-
-;;       if (game_state.frame % (random(800) + 700) == 0)
-;;         game_state.addChara(
-;;           new Unk({id: asset("unk"),
-;;                    x: this.x + 8, y: this.y + 8, state: 2,
-;;                    hit_box: { left: 3, right: 13, top: 3, bottom: 13}}));
-
-;;       if (game_state.frame % (random(700) + 300) == 0) {
-;;         var angle = Math.atan2(game_state.gpin_p.y - this.y, game_state.gpin_p.x - this.x);
-;;         game_state.addChara(
-;;           new Tama({id: asset("tama"),
-;;                     x: this.x + 8, y: this.y + 8,
-;;                     dx: 2*Math.cos(angle), dy: 2*Math.sin(angle),
-;;                     hit_box: { left: 3, right: 13, top: 3, bottom: 13}}));
-;;       }
-;;     } else if (this.state == 2) {
-;;       this.explode_cnt++;
-;;       if (this.explode_cnt == 30)
-;;         this.state = 1;
-;;     }
-;;   }
 
 (defmethod entity-update :mukku [mukku gs]
   (cond
@@ -298,31 +233,6 @@
                this)]
     [tama]))
 
-;;   takeKusa(game_state) {
-;;     this.hp += 10;
-;;     this.goal_x = this.goal_y = 0;
-;;     game_state.addChara(new Mukku({id: asset("mukku32"),
-;;                                   x: this.x, y: this.y,
-;;                                   hp: 40, move_type: random(10),
-;;                                   dir: random(4), dir_time: 100 + random(80)}));
-;;   }
-;; }
-
-;; class Tama extends Entity {
-;;   update(game_state) {
-;;     if (this.state == 0) {
-;;       this.x += this.dx;
-;;       this.y += this.dy;
-
-;;       if (this.x + this.width < 0 ||
-;;           this.y + this.height < 0||
-;;           this.x > $field_w ||
-;;           this.y > $field_h)
-;;         this.state = 1;
-;;     }
-;;   }
-;; }
-
 ;; class Unk extends Entity {
 ;;   update(game_state) {
 ;;     if (this.state == 2) {
@@ -332,14 +242,6 @@
 ;;     }
 ;;   }
 ;; }
-
-;; class Kinoko extends Entity {}
-;; class Kusa extends Entity {}
-
-;; class GameState {
-;;   constructor(params = {}) {
-;;     this.reset(params);
-;;   }
 
 (defn make-game-state []
   (reset {}))
@@ -395,35 +297,6 @@
                            (combinations (rest sublis) (- n 1))))
                     items))))
 
-;;   handleCollision() {
-;;     var all = this.all();
-;;     for (var i = 0; i < all.length - 1; i++) {
-;;       for (var j = i + 1; j < all.length; j++) {
-;;         var one = all[i], other = all[j];
-
-;;         while (one.collide(other)) {
-;;           if (one instanceof Character) {
-;;             if (other instanceof Character) {
-;;               this.charaCharaHit(one, other);
-;;             } else if (other instanceof Kusa) {
-;;               this.charaHitKusa(one, other);
-;;             } else if (other instanceof Kinoko) {
-;;               this.charaHitKinoko(one, other);
-;;             } else if (other instanceof Unk) {
-;;               this.charaUnkHit(one, other);
-;;             } else if (other instanceof Tama) {
-;;               this.charaTamaHit(one, other);
-;;             }
-;;           } else if (other instanceof Character) {
-;;             [one, other] = [other, one]
-;;             continue;
-;;           }
-;;           break;
-;;         }
-;;       }
-;;     }
-;;   }
-
 (defn handle-collision [gs]
   (let [arr (apply vector (all gs))
         pairs (combinations (take (count arr) (iterate inc 0)) 2)
@@ -448,22 +321,6 @@
           (update :gpin_p (constantly (first all-objs)))
           (update :list (constantly (rest all-objs)))))))
 
-;;           if (one instanceof Character) {
-;;             if (other instanceof Character) {
-;;               this.charaCharaHit(one, other);
-;;             } else if (other instanceof Kusa) {
-;;               this.charaHitKusa(one, other);
-;;             } else if (other instanceof Kinoko) {
-;;               this.charaHitKinoko(one, other);
-;;             } else if (other instanceof Unk) {
-;;               this.charaUnkHit(one, other);
-;;             } else if (other instanceof Tama) {
-;;               this.charaTamaHit(one, other);
-;;             }
-;;           } else if (other instanceof Character) {
-;;             [one, other] = [other, one]
-;;;; -> one other new-objs
-
 (defn character? [obj]
   (or (= (obj :class) :mukku) (= (obj :class) :gpin)))
 
@@ -487,43 +344,6 @@
       (hit other one)
       [one other ()] ;; nothing happens
       )))
-
-;;;;;;;(defn handle-collision [gs]
-
-;;   update(keystate) {
-;;     if (this.defeat() || this.victory())
-;;       $scene = "result";
-
-;;     movePlayer(this.gpin_p, keystate);
-;;     for (var obj of this.all())
-;;       obj.update(this);
-;;     if (this.frame % 120 == 0) {
-;;       this.addChara(
-;;         new Kusa({id: asset("kusa"),
-;;                   x: random($field_w - 16), y: random($field_h - 16),
-;;                   hit_box: { left: 3, right: 13, top: 3, bottom: 13}}));
-;;     }
-;;     if (this.frame % 1720 == 0) {
-;;       this.addChara(
-;;         new Kinoko({id: asset("kinoko"),
-;;                     x: random($field_w - 16), y: random($field_h - 16),
-;;                     hit_box: { left: 3, right: 13, top: 3, bottom: 13}}))
-;;     }
-;;     this.handleCollision();
-;;     for (var chara of this.searchByClass(Character))
-;;       chara.checkHp();
-;;     this.gcCharas();
-;;     this.frame++;
-
-;;     clearDisplay("black");
-;;     for (var obj of this.frame%2==0 ? this.all() : this.all().reverse())
-;;       obj.draw($ctx, this.frame);
-;;     $ctx.drawImage(asset("gpin32_p"), 650, 190);
-;;     drawStringSolid(`H P  ${this.gpin_p.hp}`, 690, 200,
-;;                     { color: "white", font: "16px sans-serif" });
-;;     $ctx.fillStyle = "white";
-;;     $ctx.fillRect(640, 0, 1, 480);
-;;   }
 
 (defmethod entity-update :default [obj gs]
   [obj])
@@ -592,31 +412,12 @@
   (set! (.-fillStyle $ctx) "white")
   (.fillRect $ctx 640 0 1 480))
 
-;;   victory() {
-;;     return !this.defeat() &&
-;;       this.list.filter(obj => obj instanceof Mukku).length == 0;
-;;   }
-
 (defn victory [gs]
   (and (not (defeat gs))
        (zero? (count (filter #(= (:class %) :mukku) (gs :list))))))
 
-;;   defeat() {
-;;     return this.gpin_p.state != 0;
-;;   }
-
 (defn defeat [gs]
   (not (= ((gs :gpin_p) :state) 0)))
-
-;;   charaCharaHit(one, other) {
-;;     if (one instanceof GPin && other instanceof GPin ||
-;;         one instanceof Mukku && other instanceof Mukku)
-;;       return;
-
-;;     var tmp = one.hp;
-;;     one.hp -= other.hp;
-;;     other.hp -= tmp;
-;;   }
 
 (defn chara-chara-hit [one other]
   (if (= (one :class) (other :class))
@@ -624,14 +425,6 @@
     (list (update one :hp - (other :hp))
           (update other :hp - (one :hp))
           ())))
-
-;;   charaUnkHit(chara, unk) {
-;;     if (chara instanceof Mukku) return;
-
-;;     asset("hit_unk").play();
-;;     unk.state = 1;
-;;     chara.hp -= 5;
-;;   }
 
 (defn chara-unk-hit [chara unk]
   (if (= :mukku (chara :class))
@@ -642,14 +435,6 @@
             (update unk :state (constantly 1))
             ()))))
 
-;;   charaTamaHit(chara, tama) {
-;;     if (chara instanceof Mukku) return;
-
-;;     asset("hit_unk").play();
-;;     tama.state = 1;
-;;     chara.hp -= 10;
-;;   }
-
 (defn chara-tama-hit [chara tama]
   (if (= :mukku (chara :class))
     (list chara tama ())
@@ -658,20 +443,6 @@
       (list (update chara :hp - 10)
             (update tama :state (constantly 1))
             ()))))
-
-;;   charaHitKusa(chara, kusa) {
-;;     asset("hit_kusa").play();
-;;     kusa.state = 1;
-;;     chara.takeKusa(this)
-;;   }
-
-;;   takeKusa(game_state) {
-;;     this.hp += 10;
-;;     game_state.addChara(new GPin({id: asset("gpin32"), x: this.x, y: this.y,
-;;                                   hp: 40, dir: random(4),
-;;                                   dir_time: 100 + random(80)}));
-;;   }
-;; }
 
 (defmulti take-kusa :class)
 (defmethod take-kusa :gpin [chara]
@@ -696,12 +467,6 @@
     (list chara
           (update kusa :state (constantly 1))
           new-objs)))
-
-;;   charaHitKinoko(chara, kinoko) {
-;;     chara.takeKinoko();
-;;     kinoko.state = 1;
-;;   }
-;; }
 
 (defn chara-hit-kinoko [chara kinoko]
   (list (take-kinoko chara)
@@ -730,20 +495,6 @@
 ;;     $scene = "game";
 ;;     keystate.z = false;
 ;;     game_state.reset();
-;;   }
-;; }
-
-;; function gameStartMessage(keystate) {
-;;   clearDisplay("black");
-
-;;   drawStringSolid("Gピン vs Mック", 120, 100,
-;;                   { color: "white", font: "80px sans-serif" });
-;;   drawStringSolid("PRESS Z TO START", 334, 308,
-;;                   { color: "white", font: "16px sans-serif" });
-
-;;   if (keystate.z) {
-;;     $scene = "game";
-;;     keystate.z = false;
 ;;   }
 ;; }
 
