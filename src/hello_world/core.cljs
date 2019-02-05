@@ -34,13 +34,13 @@
 (defmulti entity-update (fn [obj gs] (obj :class)))
 
 (def seed 1)
-(defn random [n]
-  (let [x (* (Math/sin seed) 10000)
-        r (- x (Math/floor x))]
-    (set! seed (inc seed))
-    (Math/floor (* n r))))
 ;; (defn random [n]
-;;   (Math/floor (* n (Math/random))))
+;;   (let [x (* (Math/sin seed) 10000)
+;;         r (- x (Math/floor x))]
+;;     (set! seed (inc seed))
+;;     (Math/floor (* n r))))
+(defn random [n]
+  (Math/floor (* n (Math/random))))
 
 (defn make-entity [params]
   (let [entity (merge {:id nil, :x 0, :y 0,
@@ -365,8 +365,8 @@
     (draw obj))
   (draw-status (gs :gpin_p))
 
-  (draw-string-solid (str "Objects: " (count (:list gs))) 690 250
-                     { :color "white" :font "16px sans-serif" })
+  ;; (draw-string-solid (str "Objects: " (count (:list gs))) 690 250
+  ;;                    { :color "white" :font "16px sans-serif" })
 
   (draw-border))
 
