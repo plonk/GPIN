@@ -1,33 +1,20 @@
-﻿実行ファイルをつくってみたけど他の人の環境でも動くのか知りたいです
-端末から ./GPIN　でうごいたらいいなー
-動作確認 Ubuntu16.10のみ
+﻿GPIN ClojureScript版
 
-必要なもの
-libsdl1.2-dev
-libsdl-image1.2-dev
-libsdl-mixer1.2-dev
-libsdl-ttf2.0-dev
+* 起動方法
 
-ubuntuだと
-sudo apt install libsdl1.2-dev libsdl-image1.2-dev libsdl-mixer1.2-dev libsdl-ttf2.0-dev
-でインストールできると思います。
+clj --main cljs.main --compile hello-world.core --repl
 
------------------操作説明--------------------------
-z		決定
-↑→↓←	移動
-Esc		ゲーム終了
----------------------------------------------------
+※ 環境によってはブラウザを先に起動しておかないとREPLが表示されません。
 
+* ゲーム内容
 
-----------------ゲーム内容-------------------------
 Gピンを操作してMックを殲滅するゲーム
 
 お互い初期 HP 50で始まります。
 草を食べるとHPが10上がり、自動で動くGピンが一匹増えます。
 ムックよりHPが高い状態で体当りするとムックが消えます。
---------------------------------------------------
 
+* 操作説明
 
-
-フォントにM+ FONTSを使わせてもらってます。
-http://mplus-fonts.osdn.jp/about.html
+z       決定
+↑→↓←    移動
