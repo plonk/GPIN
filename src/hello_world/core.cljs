@@ -1,3 +1,10 @@
+;; :gpin
+;; :mukku
+;; :tama
+;; :unk
+;; :kusa
+;; :kinoko
+
 (ns hello-world.core)
 
 (declare asset move-chara move-to-kinoko-kusa move-type-2
@@ -58,8 +65,8 @@
   (.drawImage $ctx (obj :id) (obj :x) (obj :y)))
 
 (defn get-center [entity]
-  (list (/ (+ (entity :x) (entity :width)) 2)
-        (/ (+ (entity :y) (entity :height)) 2)))
+  (list (+ (entity :x) (/ (entity :width) 2))
+        (+ (entity :y) (/ (entity :height) 2))))
 
 
 (defn move-to [obj tx ty]
@@ -117,7 +124,8 @@
 (defmethod take-kinoko :gpin [this]
   (update
    (if (= 0 (this :big))
-     (merge this { :id (asset "gpin64"), :width 64, :height 64, :big 1})
+     (merge this { :id (if (:player this) (asset "gpin64_p") (asset "gpin64")),
+                  :width 64, :height 64, :big 1})
      this) :hp + 50))
 
 (defmethod take-kinoko :mukku [this]
@@ -131,9 +139,9 @@
   [
    (case (this :state)
      0 (move-chara this gs)
-     2 (let [this1 (update this :explode_count inc)]
-         (if (= 100 (this1 :explode_cnt))
-           (update this1 :state 1)
+     2 (let [this1 (update this :explode_cnt inc)]
+         (if (= 30 (this1 :explode_cnt))
+           (update this1 :state (constantly 1))
            this1))
      this)
    ]
@@ -167,6 +175,11 @@
 ;;       Character.prototype.draw.apply(this, [ctx, frame]);
 ;;     }
 ;;   }
+(defmethod draw :mukku [mukku]
+  (if (= 2 (mukku :state))
+    (let [[x y] (get-center mukku)]
+      (.drawImage $ctx (asset "mukku_explode") (- x 32) (- y 32)))
+    (.drawImage $ctx (mukku :id) (mukku :x) (mukku :y))))
 
 (defmulti take-kinoko :class)
 (defmethod take-kinoko :mukku [this]
@@ -233,15 +246,13 @@
                this)]
     [tama]))
 
-;; class Unk extends Entity {
-;;   update(game_state) {
-;;     if (this.state == 2) {
-;;       this.explode_cnt++;
-;;       if (this.explode_cnt == 30)
-;;         this.state = 0;
-;;     }
-;;   }
-;; }
+(defmethod entity-update :unk [this gs]
+  [(if (= 2 (this :state))
+     (let [this (update this :explode_cnt inc)]
+       (if (= 30 (this :explode_cnt))
+         (update this :state (constantly 0))
+         this))
+     this)])
 
 (defn make-game-state []
   (reset {}))
@@ -253,14 +264,15 @@
 (defn search-by-class [gs class]
   (filter #(= class (% :class)) (all gs)))
 
-(defn create-gpin-p []
+(defn make-gpin_p []
   (make-entity {:class :gpin
                 :id (asset "gpin32_p")
                 :x (random $field_w)
                 :y (random $field_h)
-                :hp 50}))
+                :hp 50
+                :player true}))
 
-(defn create-first-mukku []
+(defn make-first-mukku []
   (make-entity {:class :mukku,
                 :id (asset "mukku32"),
                 :x (random $field_w),
@@ -271,8 +283,8 @@
                 :dir_time (+ 100 (random 80))}))
 
 (defn reset [gs]
-  (let [gs1 (merge {:gpin_p (create-gpin-p) :list '()} gs)]
-    (add-chara gs1 (create-first-mukku))))
+  (let [gs1 (merge {:gpin_p (make-gpin_p) :list '()} gs)]
+    (add-chara gs1 (make-first-mukku))))
 
 (defn add-chara [gs chara]
   (update gs :list #(cons chara %)))
@@ -390,7 +402,7 @@
   (draw-game-state gs)
 
   (let [gs1 (-> gs
-                (merge {:gpin_p (check-hp (first (entity-update (move-player (gs :gpin_p)) gs))),
+                (merge {:gpin_p (check-hp (first (entity-update (gs :gpin_p) gs))),
                         :list (->> (mapcat #(entity-update % gs) (gs :list))
                                    (add-kusa ,,)
                                    (add-kinoko ,,)
@@ -430,6 +442,7 @@
   (if (= :mukku (chara :class))
     (list chara unk ())
     (do
+      (js/alert "chara unk gpin")
       (.play (asset "hit_unk"))
       (list (update chara :hp - 5)
             (update unk :state (constantly 1))
@@ -537,7 +550,15 @@
 (defn manhattan [x1 y1 x2 y2]
   (+ (Math/abs (- x1 x2)) (Math/abs (- y1 y2))))
 
-(defn move-chara [chara gs]
+(defmulti move-chara (fn [chara gs]
+                       (cond
+                         (= (chara :class) :gpin) (if (chara :player) :gpin_p :gpin)
+                         :else (chara :class))))
+
+(defmethod move-chara :gpin_p [chara gs]
+  (move-player chara))
+
+(defmethod move-chara :default [chara gs]
   (let [chara
         (if (zero? (mod (chara :update_frame) (chara :dir_time)))
           (update chara :dir (constantly (random 4)))
