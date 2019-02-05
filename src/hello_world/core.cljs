@@ -604,4 +604,4 @@
             (.requestAnimationFrame js/window render))]
       (.requestAnimationFrame js/window render)))
 
-(gpin)
+(.addEventListener js/window "load" (fn [ev] (gpin)))
