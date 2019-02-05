@@ -11,7 +11,7 @@
          move-to-player all add-chara spy reset hit chara-chara-hit
          clear-display draw-status defeat draw-string-solid
          chara-hit-kusa chara-hit-kinoko chara-unk-hit chara-tama-hit
-         draw-border move-player victory game-over-message
+         draw-border move-player victory result-scene
          seed character? gpin)
 
 (def $field_w 640)
@@ -147,34 +147,6 @@
    ]
   )
 
-;; class GPinPlayer extends GPin {
-;;   takeKinoko() {
-;;     if (!this.big) {
-;;       this.id = asset("gpin64_p");
-;;       this.width = this.height = 64;
-;;       this.big = 1;
-;;     }
-;;     this.hp += 50;
-;;   }
-
-;;   update(game_state) {
-;;     if (this.state == 2) {
-;;       this.explode_cnt++;
-;;       if (this.explode_cnt == 100)
-;;         this.state = 1;
-;;     }
-;;   }
-;; }
-
-;; class Mukku extends Character {
-;;   draw(ctx, frame) {
-;;     if (this.state == 2) {
-;;       var [x, y] = this.getCenter();
-;;       ctx.drawImage(asset("mukku_explode"), x - 32, y - 32);
-;;     } else {
-;;       Character.prototype.draw.apply(this, [ctx, frame]);
-;;     }
-;;   }
 (defmethod draw :mukku [mukku]
   (if (= 2 (mukku :state))
     (let [[x y] (get-center mukku)]
@@ -283,7 +255,7 @@
                 :dir_time (+ 100 (random 80))}))
 
 (defn reset [gs]
-  (let [gs1 (merge {:gpin_p (make-gpin_p) :list '()} gs)]
+  (let [gs1 (merge gs {:gpin_p (make-gpin_p) :list '()})]
     (add-chara gs1 (make-first-mukku))))
 
 (defn add-chara [gs chara]
@@ -398,7 +370,7 @@
 
   (draw-border))
 
-(defn game-state-update [gs]
+(defn game-scene [gs]
   (draw-game-state gs)
 
   (let [gs1 (-> gs
@@ -412,7 +384,7 @@
                 (handle-collision))]
     (set! $frame (+ 1 $frame))
 
-    (let [next (if (or (defeat gs1) (victory gs1)) game-over-message game-state-update)]
+    (let [next (if (or (defeat gs1) (victory gs1)) result-scene game-scene)]
       (list next gs1))))
 
 (defn draw-status [gpin_p]
@@ -442,7 +414,6 @@
   (if (= :mukku (chara :class))
     (list chara unk ())
     (do
-      (js/alert "chara unk gpin")
       (.play (asset "hit_unk"))
       (list (update chara :hp - 5)
             (update unk :state (constantly 1))
@@ -492,35 +463,35 @@
   (set! (.-textBaseline $ctx) "top")
   (.fillText $ctx string x y))
 
-;; function gameOverMessage(game_state, keystate) {
-;;   if (game_state.defeat()) {
-;;     drawStringSolid("GAME OVER", 184, 200,
-;;                     { color: "white", font: "80px sans-serif" });
-;;   } else if (game_state.victory()) {
-;;     clearDisplay("black");
-;;     drawStringSolid("V I C T O R Y !!",
-;;                     130, 64, { color: "white", font: "80px sans-serif" });
-;;     drawStringSolid("C O N G R A T U L A T I O N S",
-;;                     20, 196, { color: "white", font: "60px sans-serif" });
-;;   }
+(defn result-scene [gs]
+  (draw-game-state gs)
+  (cond
+    (defeat gs)
+    (draw-string-solid "GAME OVER" 184 200 { :color "white", :font "80px sans-serif" })
 
-;;   if (keystate.z) {
-;;     $scene = "game";
-;;     keystate.z = false;
-;;     game_state.reset();
-;;   }
-;; }
+    (victory gs)
+    (do
+      (draw-string-solid "V I C T O R Y !!",
+                         130 64 { :color "white", :font "80px sans-serif" })
+      (draw-string-solid "C O N G R A T U L A T I O N S",
+                         20, 196, { :color "white" :font "60px sans-serif" })))
 
-(defn game-start-message [keystate]
+  (if ($keystate :z)
+    (list game-scene (reset gs))
+    (list result-scene gs)))
+
+(defn title-scene [gs]
   (clear-display "black")
   (draw-string-solid "Gピン vs Mック" 120 100
                      { :color "white", :font "80px sans-serif" })
   (draw-string-solid "PRESS Z TO START" 334 308
                      { :color "white", :font "16px sans-serif" })
 
-  (if (keystate :z)
-    (set! $scene "game")
-    (update keystate :z #(identity false))))
+  (if ($keystate :z)
+    (do
+      ;; (update keystate :z #(identity false))
+      (list game-scene gs))
+    (list title-scene gs)))
 
 (defn asset [id]
   (.getElementById js/document id))
@@ -587,31 +558,21 @@
         (move-to chara (- (target :x) 22) (target :y))
         (move-to chara (target :x) (target :y))))))
 
-;; function moveType2(chara, game_state) {
-;;   if (chara.hp <= 20) {
-;;     var kusa = game_state.searchByClass(Kusa)[0];
-;;     if (kusa) {
-;;       if (chara.goal_x == 0        &&  chara.goal_y == 0 ||
-;;           chara.goal_x == chara.x  &&  chara.goal_y == chara.y) {
-;;         chara.goal_x = kusa.x;
-;;         chara.goal_y = kusa.y;
-;;       }
-;;       chara.moveTo(chara.goal_x, chara.goal_y);
-;;     } else {
-;;       moveChara(chara, game_state);
-;;     }
-;;   } else {
-;;     var gpin1 = game_state.all().filter(e => e instanceof GPin &&
-;;                                         !(e instanceof GPinPlayer))[0];
-;;     if (gpin1)
-;;       chara.moveTo(gpin1.x, gpin1.y);
-;;     else
-;;       moveChara(chara, game_state);
-;;   }
-;; }
-
 (defn move-type-2 [chara gs]
-  (move-chara chara gs))
+  (if (<= (chara :hp) 20)
+    (let [kusa (first (search-by-class gs :kusa))]
+      (if kusa
+        (if (or (and (= 0 (:goal_x chara)) (= 0 (:goal_y chara)))
+                (and (= (:x chara) (:goal_x chara)) (= 0 (:y chara) (:goal_y chara))))
+          (let [chara (merge chara { :goal_x (kusa :x) :goal_y (kusa :y) })]
+            (move-to chara (:goal_x chara) (:goal_y chara)))
+          (move-to chara (:goal_x chara) (:goal_y chara)))
+        (move-chara chara gs)))
+
+    (let [gpin1 (first (filter #(= (:class %) :gpin) (gs :list)))]
+      (if gpin1
+        (move-to chara (:x gpin1) (:y gpin1))
+        (move-chara chara gs)))))
 
 (defn move-to-player [mukku gs]
   (let [gpin_p (gs :gpin_p)]
@@ -629,7 +590,7 @@
 (defn gpin []
   (set! $ctx (.getContext (.getElementById js/document "screen") "2d"))
   (set! $frame 0)
-  (set! $scene game-state-update)
+  (set! $scene title-scene)
 
   (set! $game-state (make-game-state))
 
@@ -643,4 +604,4 @@
             (.requestAnimationFrame js/window render))]
       (.requestAnimationFrame js/window render)))
 
-;(gpin)
+(gpin)
